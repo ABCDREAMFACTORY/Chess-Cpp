@@ -62,17 +62,31 @@ void Board::reset() {
 }
 
 bool Board::isInCheck(const Position& position , Piece::Color color) const {
+	int y = 0;
 	for (const std::vector<std::unique_ptr<Piece>>& row : pieces) {
+		int x = 0;
 		for (const std::unique_ptr<Piece>& piecePtr : row) {
-			if (piecePtr && piecePtr->getColor() != color) {
-				std::vector<Move> possibleMoves = piecePtr->getPossibleMoves(position, *this);
+			if (piecePtr != nullptr && piecePtr->getType()==Piece::KING && piecePtr->getColor() != color) {
+				std::vector<Move> kingMoves;
+				King kingPiece = *(dynamic_cast<const King*>(piecePtr.get()));
+				kingPiece.getNormalMoves(Position(x, y), *this, kingMoves);
+				for (const Move& move : kingMoves) {
+					if (move.getTo().getX() == position.getX() && move.getTo().getY() == position.getY()) {
+						return true; // Opponent king is adjacent
+					}
+				}
+			} else if (piecePtr && piecePtr->getColor() != color) {   // ERROR CAUSE KING CHECK CASTLING AND SO RECURSIVELY
+				Position newPos(x, y);
+				std::vector<Move> possibleMoves = piecePtr->getPossibleMoves(newPos, *this);
 				for (const Move& move : possibleMoves) {
 					if (move.getTo().getX() == position.getX() && move.getTo().getY() == position.getY()) {
 						return true; // An opponent piece can attack the king
 					}
 				}
 			}
+			x++;
 		}
+		y++;
 	}
 	return false;
 }

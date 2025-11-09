@@ -11,7 +11,7 @@ bool PieceManager::movePiece(const Move& move, Board& board) {
 	const Piece* pieceTo = board.getPiece(move.getTo());
 	std::cout << "Recuperation of possibles moves" << std::endl;
 	std::pair<bool, Move> moveInfo = this->isInPossibleMoves(move, pieceFrom->getPossibleMoves(move.getFrom(), board));
-	std::cout << "En of recuperation of possibles moves" << std::endl;;
+	std::cout << "End of recuperation of possibles moves" << std::endl;;
 	if (moveInfo.first == false) {
 		return false; // Move not valid
 	}
@@ -32,12 +32,12 @@ bool PieceManager::movePiece(const Move& move, Board& board) {
 	}
 	else if (isCastling) {
 		// Castling logic
-		if (move.getTo().getX() == 6) { // King-side castling
-			Move rookMove(Position(7, move.getFrom().getY()), Position(5, move.getFrom().getY()));
+		if (move.getTo().getX() == 5) { // King-side castling
+			Move rookMove(Position(7, move.getFrom().getY()), Position(4, move.getFrom().getY()));
 			board.movePiece(rookMove);
 		}
-		else if (move.getTo().getX() == 2) { // Queen-side castling
-			Move rookMove(Position(0, move.getFrom().getY()), Position(3, move.getFrom().getY()));
+		else if (move.getTo().getX() == 1) { // Queen-side castling
+			Move rookMove(Position(0, move.getFrom().getY()), Position(2, move.getFrom().getY()));
 			board.movePiece(rookMove);
 		}
 	}

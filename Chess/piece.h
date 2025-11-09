@@ -59,6 +59,7 @@ public:
 	King(Color _color);
 	char get_symbol_piece() const override;
 	std::vector<Move> getPossibleMoves(const Position& position, const Board& board) const override;
+	void getNormalMoves(const Position& position, const Board& board, std::vector<Move>& possibleMoves) const;
 	std::pair<Move, Move> getCastlingRookPosition(bool isKingSide , int posY) const;
 	void getCastlingMoves(const Position& position, const Board& board, std::vector<Move>& possibleMoves) const;
 

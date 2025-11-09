@@ -120,7 +120,17 @@ King::King(Piece::Color _color) : Piece(Piece::KING, _color) {}
 char King::get_symbol_piece() const { return 'k'; }
 std::vector<Move> King::getPossibleMoves(const Position& position, const Board& board) const {
 	std::vector<Move> possibleMoves;
-	std::vector<std::pair<int, int>> kingMoves = { 
+	// Normal moves
+	getNormalMoves(position, board, possibleMoves);
+	// Castling
+	if (!hasMoved) {
+		getCastlingMoves(position, board, possibleMoves);
+	}
+
+	return possibleMoves;
+}
+void King::getNormalMoves(const Position& position, const Board& board, std::vector<Move>& possibleMoves) const {
+	std::vector<std::pair<int, int>> kingMoves = {
 		{1, 0}, {1, 1}, {0, 1}, {-1, 1},
 		{-1, 0}, {-1, -1}, {0, -1}, {1, -1}
 	};
@@ -135,15 +145,9 @@ std::vector<Move> King::getPossibleMoves(const Position& position, const Board& 
 			}
 		}
 	}
-	// Castling
-	if (!hasMoved) {
-		getCastlingMoves(position, board, possibleMoves);
-	}
-
-	return possibleMoves;
 }
 std::pair<Move, Move> King::getCastlingRookPosition(bool isKingSide , int posY) const {
-	std::pair<Move, Move> moves = { Move(Position(7, posY), Position(5, posY)), Move(Position(7, posY), Position(5, posY)) };
+	std::pair<Move, Move> moves = { Move(Position(7, posY), Position(4, posY)), Move(Position(0, posY), Position(2, posY)) };
 	return moves;
 }
 void King::getCastlingMoves(const Position& position, const Board& board, std::vector<Move>& possibleMoves) const {
@@ -151,24 +155,28 @@ void King::getCastlingMoves(const Position& position, const Board& board, std::v
 	Move movesArray[2] = { castlingMoves.first, castlingMoves.second };
 	for (const Move& move : movesArray) {
 		const Piece* pieceAtRookPos = board.getPiece(move.getFrom());
-		if (pieceAtRookPos == nullptr || pieceAtRookPos->getType() == Piece::ROOK) continue;
+		if (pieceAtRookPos == nullptr || pieceAtRookPos->getType() != Piece::ROOK) continue;
 		const Rook* rook = const_cast<Rook*>(dynamic_cast<const Rook*>(pieceAtRookPos));
-		if (rook->hasMoved || board.isInCheck(Position(move.getFrom().getX(), position.getY()), this->getColor())) continue;
+		if (rook->hasMoved) continue;
 		// Check if squares between king and rook are empty
+		if (board.isInCheck(position, this->getColor())) continue; // King is in check
+
 		int step = (move.getFrom().getX() > position.getX()) ? 1 : -1;
+		bool pathClear = true;
+		bool pathSafe = true;
+
 		for (int x = position.getX() + step; x != move.getFrom().getX(); x += step) {
-			if (board.getPiece(Position(x, position.getY())) != nullptr) {
-				continue;
-			}
-			else if (board.isInCheck(Position(x, position.getY()), this->getColor())) {
-				continue;
-			} else {
-				// Valid castling move
-				Move kingMove(position, Position(position.getX() + 2 * step, position.getY()));
-				kingMove.setCastling(true);
-				possibleMoves.push_back(kingMove);
-			}
+			if (board.getPiece(Position(x, position.getY())) != nullptr) { pathClear = false; std::cout << "piece in path" << std::endl; break; }
+			if (board.isInCheck(Position(x, position.getY()), this->getColor())) { pathSafe = false; std::cout << "case between checked" << std::endl;  break; }
+			//Need correction here ^
 		}
+		// Valid castling move
+		if (!pathClear || !pathSafe) continue;
+		Move kingMove(position, Position(position.getX() + 2 * step, position.getY()));
+		kingMove.setCastling(true);
+		possibleMoves.push_back(kingMove);
+			
+		
 	}
 }
 
@@ -193,42 +201,46 @@ std::vector<Move> Pawn::getPossibleMoves(const Position& position, const Board& 
 		}
 	}
 	// Captures
-	Position captureLeft(position.getX() - 1, position.getY() + direction);
-	Position captureLeftEnPassant(position.getX() - 1, position.getY());
-	Position captureRight(position.getX() + 1, position.getY() + direction);
-	Position captureRightEnPassant(position.getX() + 1, position.getY());
-	const Piece* pieceAtLeft = board.getPiece(captureLeft);
-	const Piece* pieceAtLeftEnPassant = board.getPiece(captureLeftEnPassant);
-	const Piece* pieceAtRight = board.getPiece(captureRight);
-	const Piece* pieceAtRightEnPassant = board.getPiece(captureRightEnPassant);
-	if (pieceAtLeft != nullptr && pieceAtLeft->getColor() != this->getColor()) {
-		possibleMoves.push_back(Move(position, captureLeft));
-	}
-	const Pawn* pawnAtLeftEnPassant = dynamic_cast<const Pawn*>(pieceAtLeftEnPassant);
 	int enPassantRank = (this->getColor() == Piece::WHITE) ? 4 : 3;
-	if (pieceAtLeftEnPassant != nullptr
-		&& pieceAtLeftEnPassant->getType() == Piece::PAWN
-		&& pieceAtLeftEnPassant->getColor() != this->getColor()
-		&& pieceAtLeft == nullptr
-		&& pawnAtLeftEnPassant != nullptr
-		&& pawnAtLeftEnPassant->hasDoubleMove
-		&& position.getY() == enPassantRank) {
-		possibleMoves.push_back(Move(position, captureLeft)); // destination correcte
-		possibleMoves.back().setEnPassant(true);
+	if (position.getX() > 0) {
+		Position captureLeft(position.getX() - 1, position.getY() + direction);
+		Position captureLeftEnPassant(position.getX() - 1, position.getY());
+		const Piece* pieceAtLeft = board.getPiece(captureLeft);
+		const Piece* pieceAtLeftEnPassant = board.getPiece(captureLeftEnPassant);
+		if (pieceAtLeft != nullptr && pieceAtLeft->getColor() != this->getColor()) {
+			possibleMoves.push_back(Move(position, captureLeft));
+		}
+		const Pawn* pawnAtLeftEnPassant = dynamic_cast<const Pawn*>(pieceAtLeftEnPassant);
+		if (pieceAtLeftEnPassant != nullptr
+			&& pieceAtLeftEnPassant->getType() == Piece::PAWN
+			&& pieceAtLeftEnPassant->getColor() != this->getColor()
+			&& pieceAtLeft == nullptr
+			&& pawnAtLeftEnPassant != nullptr
+			&& pawnAtLeftEnPassant->hasDoubleMove
+			&& position.getY() == enPassantRank) {
+			possibleMoves.push_back(Move(position, captureLeft)); // destination correcte
+			possibleMoves.back().setEnPassant(true);
+		}
 	}
-	if (pieceAtRight != nullptr && pieceAtRight->getColor() != this->getColor()) {
-		possibleMoves.push_back(Move(position, captureRight));
-	}
-	const Pawn* pawnAtRightEnPassant = dynamic_cast<const Pawn*>(pieceAtRightEnPassant);
-	if (pieceAtRightEnPassant != nullptr
-		&& pieceAtRightEnPassant->getType() == Piece::PAWN
-		&& pieceAtRightEnPassant->getColor() != this->getColor()
-		&& pieceAtRight == nullptr
-		&& pawnAtRightEnPassant != nullptr
-		&& pawnAtRightEnPassant->hasDoubleMove
-		&& position.getY() == enPassantRank) {
-		possibleMoves.push_back(Move(position, captureRight)); // destination correcte
-		possibleMoves.back().setEnPassant(true);
+	if (position.getX() < 7) {
+		Position captureRight(position.getX() + 1, position.getY() + direction);
+		Position captureRightEnPassant(position.getX() + 1, position.getY());
+		const Piece* pieceAtRight = board.getPiece(captureRight);
+		const Piece* pieceAtRightEnPassant = board.getPiece(captureRightEnPassant);
+		if (pieceAtRight != nullptr && pieceAtRight->getColor() != this->getColor()) {
+			possibleMoves.push_back(Move(position, captureRight));
+		}
+		const Pawn* pawnAtRightEnPassant = dynamic_cast<const Pawn*>(pieceAtRightEnPassant);
+		if (pieceAtRightEnPassant != nullptr
+			&& pieceAtRightEnPassant->getType() == Piece::PAWN
+			&& pieceAtRightEnPassant->getColor() != this->getColor()
+			&& pieceAtRight == nullptr
+			&& pawnAtRightEnPassant != nullptr
+			&& pawnAtRightEnPassant->hasDoubleMove
+			&& position.getY() == enPassantRank) {
+			possibleMoves.push_back(Move(position, captureRight)); // destination correcte
+			possibleMoves.back().setEnPassant(true);
+		}
 	}
 	return possibleMoves;
 }
