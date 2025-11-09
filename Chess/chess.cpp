@@ -71,11 +71,14 @@ bool Chess::tryMove() {
 		// Move successful
 		std::cout << "move has been successfull\n";
 		if (Piece::Type::KING == p->getType()) {
-			const King* king = dynamic_cast<Rook*>(p);
-			p->moved(true)
+			King* king = dynamic_cast<King*>(const_cast<Piece*>(p));
+			king->setHasMoved(true);
 		} else if (Piece::Type::ROOK == p->getType()) {
-			Rook* rook = dynamic_cast<Rook*>(p);
-			p->moved(true)
+			Rook* rook = dynamic_cast<Rook*>(const_cast<Piece*>(p));
+			rook->setHasMoved(true);
+		} else if (move.isEnPassant()) {
+			Pawn* pawn = dynamic_cast<Pawn*>(const_cast<Piece*>(p));
+			pawn->setHasEnPassantMove(true);
 		}
 		currentPlayer = (currentPlayer == &whitePlayer) ? &blackPlayer : &whitePlayer;
 		return true;

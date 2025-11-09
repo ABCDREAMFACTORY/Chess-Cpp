@@ -32,6 +32,7 @@ public:
 	char get_symbol_piece() const override;
 	std::vector<Move> getPossibleMoves(const Position& position, const Board& board) const override;
 	bool hasMoved = false;
+	void setHasMoved(bool val) { hasMoved = val; }
 };
 
 class Knight : public Piece {
@@ -62,6 +63,7 @@ public:
 	void getCastlingMoves(const Position& position, const Board& board, std::vector<Move>& possibleMoves) const;
 
 	bool hasMoved = false;
+	void setHasMoved(bool val) { hasMoved = val; }
 };
 class Pawn : public Piece {
 public:
@@ -69,4 +71,5 @@ public:
 	char get_symbol_piece() const override;
 	std::vector<Move> getPossibleMoves(const Position& position, const Board& board) const override;
 	bool hasEnPassantMove = false;
+	void setHasEnPassantMove(bool val) { hasEnPassantMove = val; }
 };
