@@ -20,6 +20,7 @@ class PieceManager {
 	std::pair<bool,Move> isInPossibleMoves(const Move& move, const std::vector<Move>& possibleMoves) const;
 	void promotePawn(Position pos, Piece::Color color, Board& board);
 	void promotePawn(Position pos, Piece::Color color, Board& board, char choice);
+	void removeHasDoubleMovePawn(Piece::Color color, Board& board);
 
 
 

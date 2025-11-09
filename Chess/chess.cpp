@@ -24,6 +24,7 @@ void Chess::startGame() {
 
 void Chess::updateGame() {
 	// Game update logic (to be implemented)
+	pieceManager.removeHasDoubleMovePawn(currentPlayer->isWhiteSide() ? Piece::WHITE : Piece::BLACK, chessBoard);
 	do {
 		if (tryMove()) {
 			break; // Exit loop if move was successful
@@ -76,9 +77,9 @@ bool Chess::tryMove() {
 		} else if (Piece::Type::ROOK == p->getType()) {
 			Rook* rook = dynamic_cast<Rook*>(const_cast<Piece*>(p));
 			rook->setHasMoved(true);
-		} else if (move.isEnPassant()) {
+		} else if (Piece::Type::PAWN == p->getType() && (move.getFrom().getY() - move.getTo().getY() == 2 || move.getTo().getY() - move.getFrom().getY() == 2)) {
 			Pawn* pawn = dynamic_cast<Pawn*>(const_cast<Piece*>(p));
-			pawn->setHasEnPassantMove(true);
+			pawn->setHasDoubleMove(true);
 		}
 		currentPlayer = (currentPlayer == &whitePlayer) ? &blackPlayer : &whitePlayer;
 		return true;

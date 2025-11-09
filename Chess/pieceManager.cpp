@@ -89,3 +89,17 @@ void PieceManager::promotePawn(Position pos, Piece::Color color, Board& board) {
 		break;
 	}
 }
+void PieceManager::removeHasDoubleMovePawn(Piece::Color color, Board& board) {
+	for (int y = 0; y < 8; ++y) {
+		for (int x = 0; x < 8; ++x) {
+			Position pos(x, y);
+			const Piece* piece = board.getPiece(pos);
+			if (piece != nullptr && piece->getType() == Piece::PAWN && piece->getColor() == color) {
+				Pawn* pawn = const_cast<Pawn*>(dynamic_cast<const Pawn*>(piece));
+				if (pawn != nullptr) {
+					pawn->hasDoubleMove = false;
+				}
+			}
+		}
+	}
+}

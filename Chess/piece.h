@@ -70,6 +70,6 @@ public:
 	Pawn(Color _color);
 	char get_symbol_piece() const override;
 	std::vector<Move> getPossibleMoves(const Position& position, const Board& board) const override;
-	bool hasEnPassantMove = false;
-	void setHasEnPassantMove(bool val) { hasEnPassantMove = val; }
+	bool hasDoubleMove = false;
+	void setHasDoubleMove(bool val) { hasDoubleMove = val; }
 };

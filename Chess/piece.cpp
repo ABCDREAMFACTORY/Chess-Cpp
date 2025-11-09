@@ -204,15 +204,30 @@ std::vector<Move> Pawn::getPossibleMoves(const Position& position, const Board& 
 	if (pieceAtLeft != nullptr && pieceAtLeft->getColor() != this->getColor()) {
 		possibleMoves.push_back(Move(position, captureLeft));
 	}
-	else if (pieceAtLeftEnPassant != nullptr && pieceAtLeftEnPassant->getType() == Piece::PAWN && pieceAtLeftEnPassant->getColor() != this->getColor()){
-		possibleMoves.push_back(Move(position, captureLeftEnPassant));
+	const Pawn* pawnAtLeftEnPassant = dynamic_cast<const Pawn*>(pieceAtLeftEnPassant);
+	int enPassantRank = (this->getColor() == Piece::WHITE) ? 4 : 3;
+	if (pieceAtLeftEnPassant != nullptr
+		&& pieceAtLeftEnPassant->getType() == Piece::PAWN
+		&& pieceAtLeftEnPassant->getColor() != this->getColor()
+		&& pieceAtLeft == nullptr
+		&& pawnAtLeftEnPassant != nullptr
+		&& pawnAtLeftEnPassant->hasDoubleMove
+		&& position.getY() == enPassantRank) {
+		possibleMoves.push_back(Move(position, captureLeft)); // destination correcte
 		possibleMoves.back().setEnPassant(true);
 	}
 	if (pieceAtRight != nullptr && pieceAtRight->getColor() != this->getColor()) {
 		possibleMoves.push_back(Move(position, captureRight));
 	}
-	else if (pieceAtRightEnPassant != nullptr && pieceAtRightEnPassant->getType() == Piece::PAWN && pieceAtRightEnPassant->getColor() != this->getColor()) {
-		possibleMoves.push_back(Move(position, captureRightEnPassant));
+	const Pawn* pawnAtRightEnPassant = dynamic_cast<const Pawn*>(pieceAtRightEnPassant);
+	if (pieceAtRightEnPassant != nullptr
+		&& pieceAtRightEnPassant->getType() == Piece::PAWN
+		&& pieceAtRightEnPassant->getColor() != this->getColor()
+		&& pieceAtRight == nullptr
+		&& pawnAtRightEnPassant != nullptr
+		&& pawnAtRightEnPassant->hasDoubleMove
+		&& position.getY() == enPassantRank) {
+		possibleMoves.push_back(Move(position, captureRight)); // destination correcte
 		possibleMoves.back().setEnPassant(true);
 	}
 	return possibleMoves;

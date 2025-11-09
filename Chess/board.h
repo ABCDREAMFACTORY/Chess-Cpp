@@ -11,7 +11,6 @@ public:
 	Board();
 	void afficher() const;
 	void reset();
-	void reset();
 	const Piece*getPiece(Position pos) const {
 		return pieces[pos.getY()][pos.getX()].get();
 	}
