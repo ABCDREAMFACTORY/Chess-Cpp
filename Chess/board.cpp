@@ -26,11 +26,11 @@ void Board::afficher() const {
 }
 
 void Board::reset() {
-	// crée un plateau 8x8 rempli de nullptr
+	// crï¿½e un plateau 8x8 rempli de nullptr
 	pieces.resize(8);
 	for (auto& row : pieces) row.resize(8);
 
-	// Rangée blanche (0) : tours, cavaliers, fous, dame, roi, fous, cavaliers, tours
+	// Rangï¿½e blanche (0) : tours, cavaliers, fous, dame, roi, fous, cavaliers, tours
 	pieces[0][0] = std::make_unique<Rook>(Piece::WHITE);
 	pieces[0][1] = std::make_unique<Knight>(Piece::WHITE);
 	pieces[0][2] = std::make_unique<Bishop>(Piece::WHITE);
@@ -44,13 +44,13 @@ void Board::reset() {
 	for (size_t i = 0; i < 8; ++i)
 		pieces[1][i] = std::make_unique<Pawn>(Piece::WHITE);
 
-	// Cases vides (2..5) déjà nullptr
+	// Cases vides (2..5) dï¿½jï¿½ nullptr
 
 	// Pions noirs (6)
 	for (size_t i = 0; i < 8; ++i)
 		pieces[6][i] = std::make_unique<Pawn>(Piece::BLACK);
 
-	// Rangée noire (7) : mêmes pièces que la blanche mais en noir
+	// Rangï¿½e noire (7) : mï¿½mes piï¿½ces que la blanche mais en noir
 	pieces[7][0] = std::make_unique<Rook>(Piece::BLACK);
 	pieces[7][1] = std::make_unique<Knight>(Piece::BLACK);
 	pieces[7][2] = std::make_unique<Bishop>(Piece::BLACK);
@@ -62,12 +62,16 @@ void Board::reset() {
 }
 
 bool Board::isInCheck(const Position& position , Piece::Color color) const {
-	for (const std::vector<std::unique_ptr<Piece>>& row : pieces) {
-		for (const std::unique_ptr<Piece>& piecePtr : row) {
+	const int targetX = position.getX();
+	const int targetY = position.getY();
+	for (int y = 0; y < 8; ++y) {
+		for (int x = 0; x < 8; ++x) {
+			const std::unique_ptr<Piece>& piecePtr = pieces[y][x];
 			if (piecePtr && piecePtr->getColor() != color) {
-				std::vector<Move> possibleMoves = piecePtr->getPossibleMoves(position, *this);
+				Position currentPos(x, y);
+				std::vector<Move> possibleMoves = piecePtr->getPossibleMoves(currentPos, *this);
 				for (const Move& move : possibleMoves) {
-					if (move.getTo().getX() == position.getX() && move.getTo().getY() == position.getY()) {
+					if (move.getTo().getX() == targetX && move.getTo().getY() == targetY) {
 						return true; // An opponent piece can attack the king
 					}
 				}

@@ -1,5 +1,6 @@
 #include "pieceManager.h"
 #include <vector>
+#include <limits>
 
 void PieceManager::setupPieces(Board& board) {
 	// Initialize pieces on the board
@@ -8,7 +9,6 @@ void PieceManager::setupPieces(Board& board) {
 }
 bool PieceManager::movePiece(const Move& move, Board& board) {
 	const Piece* pieceFrom = board.getPiece(move.getFrom());
-	const Piece* pieceTo = board.getPiece(move.getTo());
 	std::cout << "Recuperation of possibles moves" << std::endl;
 	std::pair<bool, Move> moveInfo = this->isInPossibleMoves(move, pieceFrom->getPossibleMoves(move.getFrom(), board));
 	std::cout << "En of recuperation of possibles moves" << std::endl;;
@@ -58,7 +58,7 @@ std::pair<bool,Move> PieceManager::isInPossibleMoves(const Move& move, const std
 	return std::make_pair(false,Move(-1,-1,-1,-1));
 }
 
-// Promotion d'un pion à la position donnée avec le choix spécifié
+// Promotion d'un pion ï¿½ la position donnï¿½e avec le choix spï¿½cifiï¿½
 void PieceManager::promotePawn(Position pos, Piece::Color color, Board& board, char choice) {
 	char c = std::toupper(static_cast<unsigned char>(choice));
 	std::unique_ptr<Piece> newPiece;
@@ -67,25 +67,25 @@ void PieceManager::promotePawn(Position pos, Piece::Color color, Board& board, c
 	else if (c == 'B') newPiece = std::make_unique<Bishop>(color);
 	else if (c == 'N') newPiece = std::make_unique<Knight>(color);
 	else {
-		// choix invalide : ne modifie pas le plateau (appelant peut gérer erreur)
+		// choix invalide : ne modifie pas le plateau (appelant peut gï¿½rer erreur)
 		return;
 	}
 	board.changePiece(pos, std::move(newPiece));
 }
-// Promotion d'un pion à la position donnée en demandant à l'utilisateur
+// Promotion d'un pion ï¿½ la position donnï¿½e en demandant ï¿½ l'utilisateur
 void PieceManager::promotePawn(Position pos, Piece::Color color, Board& board) {
 	std::string input;
 	while (true) {
 		std::cout << "Promotion : choisissez (Q=Queen, R=Rook, B=Bishop, N=Knight) : ";
 		if (!(std::cin >> input)) {
-			// lecture échouée : clear et retry
+			// lecture ï¿½chouï¿½e : clear et retry
 			std::cin.clear();
 			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 			continue;
 		}
 		if (input.empty()) continue;
 		char c = input[0];
-		promotePawn(pos, color, board, c); // réutilise la version testable
+		promotePawn(pos, color, board, c); // rï¿½utilise la version testable
 		break;
 	}
 }

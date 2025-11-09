@@ -24,9 +24,9 @@ char Rook::get_symbol_piece() const { return 'r'; }
 std::vector<Move> Rook::getPossibleMoves(const Position& position,const Board& board) const {
 	// To be implemented
 	std::vector<Move> possibleMoves;
-	const Piece* pieceAtPos = board.getPiece(position);
+	possibleMoves.reserve(14); // Max possible rook moves on empty board
 	std::vector<std::pair<int, int>> directions = { {1,0}, {-1,0}, {0,1}, {0,-1} };
-	for (std::pair<int,int>& dir : directions) {
+	for (const std::pair<int,int>& dir : directions) {
 		int x = position.getX();
 		int y = position.getY();
 		while (true) {
@@ -54,11 +54,12 @@ Knight::Knight(Piece::Color _color) : Piece(Piece::KNIGHT, _color) {}
 char Knight::get_symbol_piece() const { return 'n'; }
 std::vector<Move> Knight::getPossibleMoves(const Position& position, const Board& board) const {
 	std::vector<Move> possibleMoves;
+	possibleMoves.reserve(8); // Max possible knight moves
 	std::vector<std::pair<int, int>> knightMoves = {
 		{2, 1}, {1, 2}, {-1, 2}, {-2, 1},
 		{-2, -1}, {-1, -2}, {1, -2}, {2, -1}
 	};
-	for (std::pair<int,int> move : knightMoves) {
+	for (const std::pair<int,int>& move : knightMoves) {
 		int newX = position.getX() + move.first;
 		int newY = position.getY() + move.second;
 		if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
@@ -78,8 +79,9 @@ Bishop::Bishop(Piece::Color _color) : Piece(Piece::BISHOP, _color) {}
 char Bishop::get_symbol_piece() const { return 'b'; }
 std::vector<Move> Bishop::getPossibleMoves(const Position& position, const Board& board) const {
 	std::vector<Move> possibleMoves;
+	possibleMoves.reserve(13); // Max possible bishop moves on empty board
 	std::vector<std::pair<int, int>> directions = { {1,1}, {1,-1}, {-1,1}, {-1,-1} };
-	for (std::pair<int, int>& dir : directions) {
+	for (const std::pair<int, int>& dir : directions) {
 		int newX = position.getX(), newY = position.getY();
 		while (true) {
 			newX = newX + dir.first;
@@ -105,13 +107,32 @@ Queen::Queen(Piece::Color _color) : Piece(Piece::QUEEN, _color) {}
 char Queen::get_symbol_piece() const { return 'q'; }
 std::vector<Move> Queen::getPossibleMoves(const Position& position, const Board& board) const {
 	std::vector<Move> possibleMoves;
-	// Combine Rook and Bishop moves
-	Rook rookPart(this->getColor());
-	Bishop bishopPart(this->getColor());
-	std::vector<Move> rookMoves = rookPart.getPossibleMoves(position, board);
-	std::vector<Move> bishopMoves = bishopPart.getPossibleMoves(position, board);
-	possibleMoves.insert(possibleMoves.end(), rookMoves.begin(), rookMoves.end());
-	possibleMoves.insert(possibleMoves.end(), bishopMoves.begin(), bishopMoves.end());
+	possibleMoves.reserve(27); // Max possible queen moves on empty board
+	// Combine Rook and Bishop directions inline instead of creating objects
+	std::vector<std::pair<int, int>> directions = {
+		{1,0}, {-1,0}, {0,1}, {0,-1},  // Rook directions
+		{1,1}, {1,-1}, {-1,1}, {-1,-1}  // Bishop directions
+	};
+	for (const std::pair<int, int>& dir : directions) {
+		int x = position.getX();
+		int y = position.getY();
+		while (true) {
+			x += dir.first;
+			y += dir.second;
+			if (x < 0 || x >= 8 || y < 0 || y >= 8) break;
+			Position newPos(x, y);
+			const Piece* pieceAtNewPos = board.getPiece(newPos);
+			if (pieceAtNewPos == nullptr) {
+				possibleMoves.push_back(Move(position, newPos));
+			}
+			else {
+				if (pieceAtNewPos->getColor() != this->getColor()) {
+					possibleMoves.push_back(Move(position, newPos));
+				}
+				break;
+			}
+		}
+	}
 	return possibleMoves;
 }
 
@@ -120,11 +141,12 @@ King::King(Piece::Color _color) : Piece(Piece::KING, _color) {}
 char King::get_symbol_piece() const { return 'k'; }
 std::vector<Move> King::getPossibleMoves(const Position& position, const Board& board) const {
 	std::vector<Move> possibleMoves;
+	possibleMoves.reserve(10); // 8 normal moves + 2 castling moves max
 	std::vector<std::pair<int, int>> kingMoves = { 
 		{1, 0}, {1, 1}, {0, 1}, {-1, 1},
 		{-1, 0}, {-1, -1}, {0, -1}, {1, -1}
 	};
-	for (std::pair<int, int> move : kingMoves) {
+	for (const std::pair<int, int>& move : kingMoves) {
 		int newX = position.getX() + move.first;
 		int newY = position.getY() + move.second;
 		if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
@@ -142,7 +164,7 @@ std::vector<Move> King::getPossibleMoves(const Position& position, const Board& 
 
 	return possibleMoves;
 }
-std::pair<Move, Move> King::getCastlingRookPosition(bool isKingSide , int posY) const {
+std::pair<Move, Move> King::getCastlingRookPosition(bool /*isKingSide*/ , int posY) const {
 	std::pair<Move, Move> moves = { Move(Position(7, posY), Position(5, posY)), Move(Position(7, posY), Position(5, posY)) };
 	return moves;
 }
@@ -178,6 +200,7 @@ Pawn::Pawn(Piece::Color _color) : Piece(Piece::PAWN, _color) {}
 char Pawn::get_symbol_piece() const { return 'p'; }
 std::vector<Move> Pawn::getPossibleMoves(const Position& position, const Board& board) const {
 	std::vector<Move> possibleMoves;
+	possibleMoves.reserve(4); // Max 4 moves: 2 forward + 2 captures
 	int direction = (this->getColor() == Piece::WHITE) ? 1 : -1;
 	int startRow = (this->getColor() == Piece::WHITE) ? 1 : 6;
 	// Move forward
